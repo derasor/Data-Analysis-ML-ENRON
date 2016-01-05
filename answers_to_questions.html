@@ -89,9 +89,22 @@ Since the dataset is not particularly large, and the labeling is skewed toward a
 </span></p>
 
 <p class="c0"><span></span></p><p class="c0"><span></span></p><ol class="c3 lst-kix_otxxp6dydhwn-0" start="3"><li class="c1 c4"><span>What algorithm did you end up using? What other one(s) did you try? How did model performance differ between algorithms? &nbsp;[relevant rubric item: “pick an algorithm”]</span></li></ol><p class="c0"><span></span></p>
-<p class="c1"><span>I tried a variety of classifiers training on the whole dataset. I recorded performance for each of them using the output from the provided code 'tester.py' in order to compare and decide what algorithm I ended up using in my classifier.
-<br><br>
-The starting point was a Gaussian Naive Bayes classifier, in the ouput of 'tester.py', I notice a large number of predictions (14000) compared to the size of my dataset (145). The reason, as explained in Task 5 description, is the use of stratified shuffle split cross validation. Also, for this initial classifier, there is a large number of false negatives, and accordingly, a bad Recall. I tried then a Decision Tree using GridSearchCV for systematic tuning of parameters, specifically 'criterion' and 'min_samples_split'. Accuracy and precision were slightly lower,   but Recall improved. However, it seemed, overall, a more balanced classifier. A very important characteristic due to the skewness of labeling. I walso tried AdaBoost with Decision Tree Classifier as weak learner; but, this ensemble method gave worst results. Finally I tried SVC with scaling (since I tested rbf kernel). In this case I used again selectKBest for feature selection using the feature set with the initial 10 features plus the 2 new features. For this test I used Pipeline and Gridsearch. Again, recall did very poorly since there were a large number for false negatives just like with the initial Gaussian Naive Bayes classifier.
+<p class="c1"><span>I tried a variety of classifiers training on the whole dataset. I recorded performance for each of them using the output from the provided code 'tester.py' in order to compare and decide what algorithm to finally use in my classifier. The results were:<br><br>
+
+  <table id="t01" style="width:100%" border="1">
+  <tbody><tr>
+    <th>Algorithm</th>
+    <th>Precision</th> 
+    <th>Recall</th>
+  </tr>
+  <tr>
+    <td>GaussianNB</td>
+    <td>***</td> 
+    <td>***</td>
+  </tr>
+</tbody></table>
+  <br><br>
+The starting point was a Gaussian Naive Bayes classifier, in the ouput of 'tester.py', I notice a large number of predictions (14000) compared to the size of my dataset (145). The reason, as explained in Task 5 description, is the use of stratified shuffle split cross validation. Also, for this initial classifier, there is a large number of false negatives, and accordingly, a bad Recall. I tried then a Decision Tree using GridSearchCV for systematic tuning of parameters, specifically 'criterion' and 'min_samples_split'. Precision was slightly lower,   but Recall improved. However, it seemed, overall, a more balanced classifier. A very important characteristic due to the skewness of labeling. I walso tried AdaBoost with Decision Tree Classifier as weak learner; but, this ensemble method gave worst results. Finally I tried SVC with scaling (since I tested rbf kernel). In this case I used again selectKBest for feature selection using the feature set with the initial 10 features plus the 2 new features. For this test I used Pipeline and Gridsearch. Again, recall did very poorly since there were a large number for false negatives just like with the initial Gaussian Naive Bayes classifier.
 <br><br>
 Since the Decision Tree Classifier gave the most balanced results, I chose to use this algorithm.
 </span></p>
@@ -105,6 +118,8 @@ Since the Decision Tree Classifier gave the most balanced results, I chose to us
 Given the nature of this dataset, splitting randomly does not guarantee a training subset that effectively recognizes the differences between the two labels since there are so many more instances of non-POIs compared to instances of POIs. This is why I used k-fold cross-validation to split the dataset into train and test sets, and chose the splitting that best trained my classifier.</span></p>
 
 <p class="c0"><span></span></p><p class="c0"><span></span></p><ol class="c3 lst-kix_otxxp6dydhwn-0" start="6"><li class="c1 c4"><span>Give at least 2 evaluation metrics and your average performance for each of them. &nbsp;Explain an interpretation of your metrics that says something human-understandable about your algorithm’s performance. [relevant rubric item: “usage of evaluation metrics”]</span></li></ol><p class="c0"><span></span></p>
-<p class="c1"><span>The most decisive aspect in the process was using k-fold cross validation to choose the best train-test splitting. Using this tool I was able to achieve an accuracy of 0.913043478261, a recall of 0.5, and a precision of 0.75. When testing different algorithms, a recurrent concern was the high occurences of false negatives, and thus a low recall. Having false negatives is equivalent of not identifying Persons Of Interest, when they actually are, so improving this metric was important. In the end precision is higher than recall, having high precision in this context is equivalent to having low false positives, or in other words, having a relative lower probability of classifying someone as POI erroneously. Lowering this probability is maybe even more important, so the fact that precision is even higher is very desirable.
+<p class="c1"><span>The most decisive aspect in the process was using k-fold cross validation to choose the best train-test splitting. Using this tool I was able to achieve an accuracy of 0.913043478261 (this value is not a significant score since the dataset labeling is heavily unbalanced, however it is included for completeness), a recall of 0.5, and a precision of 0.75. 
+<br><br>RECALL: When testing different algorithms, a recurrent concern was the high occurences of false negatives, and thus a low recall. Having false negatives is equivalent of not identifying Persons Of Interest, when they actually are, so improving this metric was important. 
+<br><br>PRECISION: In the end precision is higher than recall, having high precision in this context is equivalent to having low false positives, or in other words, having a relative lower probability of classifying someone as POI erroneously. Lowering this probability is maybe even more important, so the fact that precision is even higher is very desirable.
 </span></p>
 <p class="c8"><span></span></p></body></html>
