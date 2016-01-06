@@ -211,6 +211,96 @@ data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
 
 # *******************************************************************
+
+### Task 1: Select what features you'll use. -----------------------[REVIEW]
+# After the first review I was asked to implement a more rigorous approach for
+# optimizing feature selection in an iterative process. So I will now start with
+# all possible features and test decreasing sets of them according to their
+# importances. I will then compare this results to the choice I made before.
+print "*************************************************************"
+features_review = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments',
+                   'loan_advances', 'bonus', 'restricted_stock_deferred', 'total_stock_value',
+                   'shared_receipt_with_poi', 'long_term_incentive', 'exercised_stock_options',
+                   'from_messages', 'other', 'from_poi_to_this_person', 'from_this_person_to_poi',
+                   'deferred_income', 'expenses', 'restricted_stock', 'director_fees',
+                   'fraction_from_poi', 'fraction_to_poi']
+
+
+data_review = featureFormat(data_dict, features_review, sort_keys = True)
+labels_r, features_r= targetFeatureSplit(data_review)
+
+clf_review = DecisionTreeClassifier()
+clf_review = clf_review.fit(features_r, labels_r)
+
+print "**REVIEW FEATURE SELECTION** - Feature importances with Decision Tree - all features"
+features_review_1 = []
+for index,importance in enumerate(clf_review.feature_importances_):
+    print "Feature:", features_review[index+1]
+    print "Importance:", importance
+    if importance > 0:
+        features_review_1.append(features_review[index+1])
+print
+
+# First feature choosing: importance at least  larger than zero:
+print "Features with importance larger than zero - first iteration:", features_review_1
+print
+
+# Second iteration:
+data_review_2 = featureFormat(data_dict, features_review_1, sort_keys = True)
+labels_r_2, features_r_2= targetFeatureSplit(data_review_2)
+clf_review = clf_review.fit(features_r_2, labels_r_2)
+print "**REVIEW FEATURE SELECTION** - Feature importances with Decision Tree - second iteration"
+features_review_2 = []
+for index,importance in enumerate(clf_review.feature_importances_):
+    print "Feature:", features_review_1[index]
+    print "Importance:", importance
+    if importance > 0.1:
+        features_review_2.append(features_review_1[index])
+print
+print "Features with importance larger than 0.1 - second iteration:", features_review_2
+print
+
+# Third iteration:
+data_review_3 = featureFormat(data_dict, features_review_2, sort_keys = True)
+labels_r_3, features_r_3= targetFeatureSplit(data_review_3)
+clf_review = clf_review.fit(features_r_3, labels_r_3)
+print "**REVIEW FEATURE SELECTION** - Feature importances with Decision Tree - third iteration"
+features_review_3 = []
+for index,importance in enumerate(clf_review.feature_importances_):
+    print "Feature:", features_review_2[index]
+    print "Importance:", importance
+    if importance > 0.1:
+        features_review_3.append(features_review_2[index])
+print
+print "Features - third iteration:", features_review_3
+print "Final list"
+print "*************************************************************"
+# now: 'bonus', 'total_stock_value', 'shared_receipt_with_poi', 'exercised_stock_options', 'other'
+# before: 'expenses', 'fraction_from_poi', 'exercised_stock_options', 'restricted_stock'7
+
+# Update feature list
+"""
+features_list = ["poi"] + features_review_3
+data = featureFormat(my_dataset, features_list, sort_keys = True)
+labels, features = targetFeatureSplit(data)
+"""
+# Recall and Precision using iterative feature selection:
+#Final recall: 0.166666666667
+#Final precision: 0.25
+
+# Since this feature list gives worse results, I will try the previous set:
+"""
+features_list = ["poi"] + features_review_2
+data = featureFormat(my_dataset, features_list, sort_keys = True)
+labels, features = targetFeatureSplit(data)
+"""
+# Recall and Precision using iterative feature selection:
+#Final recall: 0.333333333333
+#Final precision: 0.333333333333
+
+# It is still a worse result, SO I WILL KEEP MY INITIAL FEATURE SELECTION
+
+# *******************************************************************
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
 ### Note that if you want to do PCA or other multi-stage operations,
@@ -246,16 +336,34 @@ clf = GaussianNB()
 ## CODE:
 print "CLASSIFIER:"
 print
+
 from sklearn.grid_search import GridSearchCV
+from sklearn.cross_validation import StratifiedShuffleSplit
 DT_parameters = {'criterion':('gini','entropy'), 'min_samples_split':[4,8,12]}
 dtc = DecisionTreeClassifier() # Already imported
-clf = GridSearchCV(dtc, DT_parameters)
-clf.fit(features, labels)
+
+#-----------------------[REVIEW]
+# As recommended in the review, using StratifiedShuffleSplit, I will validate
+# the algorithm performance using a cv object that best adapts to dataset characteristics,
+# and searches for those parameters that maximize RECALL using the 'scoring' parameter
+# in GridSearchCV:
+#
+cv = StratifiedShuffleSplit(labels,n_iter = 50,random_state = 42)
+a_grid_search = GridSearchCV(dtc, param_grid = DT_parameters,cv = cv, scoring = 'recall')
+a_grid_search.fit(features,labels)
+
 print "Decision Tree Classifier"
-print "Chosen parameters:", clf.best_estimator_ # criterion=gini, min_samples_split=4
+print "Chosen parameters:", a_grid_search.best_estimator_
+
+## pick a winner
+best_clf = a_grid_search.best_estimator_ # This is the best classifier
+
+clf = best_clf
+print clf
 print
 
-# Output from tester.py:
+
+# Output from tester.py: (Before picking this algorithm and tuning it with StratifiedShuffleSplit)
 #GridSearchCV(cv=None, error_score='raise',
 #       estimator=DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=None,
 #            max_features=None, max_leaf_nodes=None, min_samples_leaf=1,
@@ -343,7 +451,7 @@ clf.fit(features, labels)
 # I will use the Decision Tree Classifier
 
 # *******************************************************************
-# Evaluation for the final design:
+# Evaluation for the final design: (TUNING DONE IN PREVIOUS TASK)
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
 ### folder for details on the evaluation method, especially the test_classifier
@@ -387,8 +495,8 @@ for train_index, test_index in kf:
 
 # Now the results and their means:
 print "Final design mean evaluations, using k=3 fold cross validation"
-print "Accuracy values for each fold:", accuracies
-print "Mean accuracy:", np.mean(accuracies)
+print "Accuracy values for each fold (not relevant since dataset is heavily unbalanced):", accuracies
+#print "Mean accuracy:", np.mean(accuracies)
 print "Recall values for each fold:", recalls
 print "Recall:", np.mean(recalls)
 print "Precisionvalues for each fold:", precisions
@@ -411,7 +519,7 @@ final_precision = metrics.precision_score(labels_test, labels_predicted)
 print "Final accuracy:", final_acc
 print "Final recall:", final_recall
 print "Final precision:", final_precision
-print "END"
+print
 
 # Since both Recall and Precision are above 0.3 I will keep this classifier
 
@@ -422,3 +530,61 @@ print "END"
 ### generates the necessary .pkl files for validating your results.
 
 dump_classifier_and_data(clf, my_dataset, features_list)
+
+
+
+# *******************************************************************
+print "*************************************************************"
+print "REVIEW"
+print "Importance of features for final classifier:"
+for index,importance in enumerate(clf.feature_importances_):
+    print "Feature:", features_list[index+1]
+    print "Importance:", importance
+
+#Importance of the new feature used:
+#Feature: exercised_stock_options
+#Importance: 0.0965865130105
+#Feature: expenses
+#Importance: 0.422405016899
+#Feature: fraction_from_poi
+#Importance: 0.390279461739
+#Feature: restricted_stock
+#Importance: 0.0907290083506
+
+# IMPORTANCE OF NEW FEATURE:
+# fraction_from_poi has the second largest value with 0.390279461739
+
+
+
+### Feature importance with iterative process (second iteration):
+#Importance of features:
+#Feature: bonus
+#Importance: 0.401094102404
+#Feature: total_stock_value
+#Importance: 0.111776484497
+#Feature: long_term_incentive
+#Importance: 0.0
+#Feature: exercised_stock_options
+#Importance: 0.131296599624
+#Feature: other
+#Importance: 0.355832813475
+#Feature: expenses
+#Importance: 0.0
+### Recall and Precision:
+#Final recall: 0.333333333333
+#Final precision: 0.333333333333
+
+
+### Feature importance with iterative process (third and final iteration):
+#Importance of features:
+#Feature: bonus
+#Importance: 0.424737717027
+#Feature: shared_receipt_with_poi
+#Importance: 0.0
+#Feature: exercised_stock_options
+#Importance: 0.0502403018989
+#Feature: other
+#Importance: 0.525021981074
+### Recall and Precision:
+#Final recall: 0.166666666667
+#Final precision: 0.25
