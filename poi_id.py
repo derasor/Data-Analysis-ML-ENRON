@@ -129,6 +129,8 @@ for name in data_dict:
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 # 'try' for second exploration on feature selection, with new features
+# Here SelectKBest will pick 4 features from the 5 features that were picked
+# from the previous analysis.
 features_list_try_2 = ['poi','exercised_stock_options', 'expenses',
                         'fraction_from_poi', 'fraction_to_poi', 'restricted_stock']
 data_try_2 = featureFormat(data_dict, features_list_try_2, sort_keys = True)
@@ -275,8 +277,6 @@ print
 print "Features - third iteration:", features_review_3
 print "Final list"
 print "*************************************************************"
-# now: 'bonus', 'total_stock_value', 'shared_receipt_with_poi', 'exercised_stock_options', 'other'
-# before: 'expenses', 'fraction_from_poi', 'exercised_stock_options', 'restricted_stock'7
 
 # Update feature list
 """
