@@ -5,6 +5,8 @@
 <p class="c1"><span class="c2">Intro to Machine Learning - Identifying Fraud from Enron Email</span></p>
 <p class="c1"><span class="c2">David Eraso</span></p>
 <p class="c1"><span class="c2">-------------------------------</span></p><p class="c1"><span class="c2">Enron Submission Free-Response Questions</span></p><p class="c0"><span></span></p><p class="c0"><span></span></p><p class="c1"><span>REFERENCES<br><br> 
+Udacity review:<br><br>
+[0] </span><span class="c5"><a class="c7" href="https://review.udacity.com/#!/reviews/88373"></a>https://review.udacity.com/#!/reviews/88373</span><span>&nbsp;<br><br>
 Remove outliers:<br><br> 
 [1] Udacity - Intro To Machine Learning, Lesson 7--Outliers<br><br>
 Create new features:<br><br>
@@ -85,8 +87,78 @@ Other:<br><br>
 <p class="c1"><span>The variable that I am trying to predict is 'poi', this is the label. In order to choose the features of my model, and taking into account the previous analysis, The first thing I did was to keep features with low proportion of NaN values as a first filter. Such features include 'total stock value', 'total payments', 'restricted stock', 'exercised stock options', 'expenses', and 'salary'. 'email address' has a relatively low prportion of NaN but does not seem to have a direct relevance to de label since the goal is precisely to identify POIs regardless of their name, and 'email address' is a proxy to this prior identity. Also it is worth noting that the variables choosed in this first filter are all from the financial part of the dataset. To complement this set of features I added four features from the email part of the dataset that interestingly have the same proportion of NaN entries; 'to messages', 'from messages', 'from poi to this person', and 'from this person to poi'.<br><br>
 My first exploration of feature importance was to actually deploy a Decision Tree classifier and check feature importances. From this first approach I have 'exercised_stock_options', 'expenses' and 'restricted_stock' as possible candidates. Also, in the email features, one of 'from_poi_to_this_person' and 'from_this_person_to_poi' may be important. However, regarding these last features, as discussed in lesson 11, a more relevant form would be to have a proportion o e-mails from/to poi. This is in a way a custom scaling, and so the new features 'fraction_to_poi' and 'fraction_from_poi' are created.
 <br><br>
+REASONS TO INCLUDE NEW FEATURES: The new features 'fraction_from_poi' and 'fraction_to_poi' were included, as explained in the previous paragraph, as a way to normalize 'from_poi_to_this_person' and 'from_this_person_to_poi'; since these values could not be compared effectively across persons, but the fraction of messages to/from POI is a value that can point out to actual differences between persons because now they are normalized. 
+<br><br>
 Since the dataset is not particularly large, and the labeling is skewed toward a large proportion of non-POIs, I keep the number of features low, at four. Even though I will not use PCA in the final implementation since the principal components will not be any of the original features, but a linear combination of them, I am curious to explore Principal Component Analysis with a set of features that take into account all of the features in the first set, plus the new created features to see if I can gain any further insight with the results. PCA needs scaling, and thus it is implemented for this part. In the results 'exercised_stock_options' is important in the second and third PC, but in neither case it is the main contributor. 'expenses' is the main contributor in PC(4) and very important in PC(3) along with 'fraction_to_poi', this last feature it's also very important in PC(2) with 'fraction_from_poi'. But in general I don't feel that these results give me a decisive insight, so I will keep with the features chosen by SelectKBest: 'exercised_stock_options', 'expenses', 'fraction_from_poi', and 'restricted_stock'.
-</span></p>
+<br><br>
+FEATURE SELECTION REVIEW: I was asked to implement a more rigorous approach for optimizing feature selection in an iterative process. So I started with all possible features (only excluding 'email address') and test decreasing sets of them according to their importances (as specified by 'feature_importances_' in DecisionTreeClassifier). The initial ranking for all features:
+</span></p><xmp>
+Feature: salary
+Importance: 0.042328042328
+Feature: to_messages
+Importance: 0.0
+Feature: deferral_payments
+Importance: 0.0
+Feature: total_payments
+Importance: 0.0
+Feature: loan_advances
+Importance: 0.0
+Feature: bonus
+Importance: 0.0
+Feature: restricted_stock_deferred
+Importance: 0.0
+Feature: total_stock_value
+Importance: 0.11453470277
+Feature: shared_receipt_with_poi
+Importance: 0.118635875403
+Feature: long_term_incentive
+Importance: 0.0
+Feature: exercised_stock_options
+Importance: 0.2
+Feature: from_messages
+Importance: 0.0
+Feature: other
+Importance: 0.190136054422
+Feature: from_poi_to_this_person
+Importance: 0.0
+Feature: from_this_person_to_poi
+Importance: 0.0
+Feature: deferred_income
+Importance: 0.0
+Feature: expenses
+Importance: 0.170139634801
+Feature: restricted_stock
+Importance: 0.0281712685074
+Feature: director_fees
+Importance: 0.0
+Feature: fraction_from_poi
+Importance: 0.0
+Feature: fraction_to_poi
+Importance: 0.136054421769  
+  </xmp>
+  
+  There were several features with importance zero when testing the whole, so these were the first that were removed. Thus, after the first iteration I had only eight features, namely: 'salary', 'total_stock_value', 'shared_receipt_with_poi', 'exercised_stock_options', 'other', 'expenses', 'restricted_stock', 'fraction_to_poi'. In the second iteration features with marginal importances from this previous set were removed, leaving four features: 'salary', 'exercised_stock_options', 'expenses', 'restricted_stock'. And a final iteration removing one more feature yielded these three features: salary', 'exercised_stock_options', 'expenses'. These were the results of final Recall and Precision for the last two iterations:<br><br>
+
+    <table id="t01" style="width:100%" border="1">
+  <tbody><tr>
+    <th>Metric</th> 
+    <th>2nd Iteration</th>
+    <th>3rd Iteration</th>
+  </tr>
+  <tr>
+    <td>Recall</td>
+    <td>0.333</td> 
+    <td>0.167</td>
+  </tr>
+  <tr>
+    <td>Precision</td>
+    <td>0.333</td> 
+    <td>0.25</td>
+  </tr>  
+</tbody></table>
+  <br><br>
+Since this process gave worse results than my previous effort, I kept my initial feature selection list.
+<p></p>
 
 <p class="c0"><span></span></p><p class="c0"><span></span></p><ol class="c3 lst-kix_otxxp6dydhwn-0" start="3"><li class="c1 c4"><span>What algorithm did you end up using? What other one(s) did you try? How did model performance differ between algorithms? &nbsp;[relevant rubric item: “pick an algorithm”]</span></li></ol><p class="c0"><span></span></p>
 <p class="c1"><span>I tried a variety of classifiers training on the whole dataset. I recorded performance for each of them using the output from the provided code 'tester.py' in order to compare and decide what algorithm to finally use in my classifier. The results were:<br><br>
@@ -99,18 +171,33 @@ Since the dataset is not particularly large, and the labeling is skewed toward a
   </tr>
   <tr>
     <td>GaussianNB</td>
-    <td>***</td> 
-    <td>***</td>
+    <td>0.493</td> 
+    <td>0.283</td>
+  </tr>
+  <tr>
+    <td>Decission Tree</td>
+    <td>0.373</td> 
+    <td>0.302</td>
+  </tr>
+  <tr>
+    <td>AdaBoost</td>
+    <td>0.294</td> 
+    <td>0.168</td>
+  </tr>
+  <tr>
+    <td>SVC</td>
+    <td>0.580</td> 
+    <td>0.069</td>
   </tr>
 </tbody></table>
   <br><br>
 The starting point was a Gaussian Naive Bayes classifier, in the ouput of 'tester.py', I notice a large number of predictions (14000) compared to the size of my dataset (145). The reason, as explained in Task 5 description, is the use of stratified shuffle split cross validation. Also, for this initial classifier, there is a large number of false negatives, and accordingly, a bad Recall. I tried then a Decision Tree using GridSearchCV for systematic tuning of parameters, specifically 'criterion' and 'min_samples_split'. Precision was slightly lower,   but Recall improved. However, it seemed, overall, a more balanced classifier. A very important characteristic due to the skewness of labeling. I walso tried AdaBoost with Decision Tree Classifier as weak learner; but, this ensemble method gave worst results. Finally I tried SVC with scaling (since I tested rbf kernel). In this case I used again selectKBest for feature selection using the feature set with the initial 10 features plus the 2 new features. For this test I used Pipeline and Gridsearch. Again, recall did very poorly since there were a large number for false negatives just like with the initial Gaussian Naive Bayes classifier.
 <br><br>
-Since the Decision Tree Classifier gave the most balanced results, I chose to use this algorithm.
+Since the Decision Tree Classifier gave the most balanced results, and the best result for RECALL, which is the most problematic metric, the choice is to use this algorithm.
 </span></p>
 
 <p class="c0"><span></span></p><p class="c0"><span></span></p><ol class="c3 lst-kix_otxxp6dydhwn-0" start="4"><li class="c1 c4"><span>What does it mean to tune the parameters of an algorithm, and what can happen if you don’t do this well? &nbsp;How did you tune the parameters of your particular algorithm? (Some algorithms do not have parameters that you need to tune -- if this is the case for the one you picked, identify and briefly explain how you would have done it for the model that was not your final choice or a different model that does utilize parameter tuning, e.g. a decision tree classifier). &nbsp;[relevant rubric item: “tune the algorithm”]</span></li></ol><p class="c0"><span></span></p>
-<p class="c1"><span>Most classification algorithms have parameters that define the inner process of the training. Depending on the problem you are tackling, and the nature of the dataset, different combinations of values and specifications for these parameters can yiled different outcomes in the performance of the classifier. In this case, a Desission Tree classifier was used. This classifier, as defined in the sickit-learn library, gives the possibility of inspecting features importances, as used in feature selection. Also, as mentioned before, GridsearchCV was used to automatically tune the parameters 'criterion' (The function to measure the quality of a split. “gini” for the Gini impurity, and “entropy” for the information gain)[], and 'min_samples_split' (The minimum number of samples required to split an internal node)[].
+<p class="c1"><span>Most classification algorithms have parameters that define the inner process of the training. Depending on the problem you are tackling, and the nature of the dataset, different combinations of values and specifications for these parameters can yiled different outcomes in the performance of the classifier. In this case, a Desission Tree classifier was used. This classifier, as defined in the sickit-learn library, gives the possibility of inspecting features importances, as used in feature selection. Also, as mentioned before, GridsearchCV was used to automatically tune the parameters 'criterion' (The function to measure the quality of a split. “gini” for the Gini impurity, and “entropy” for the information gain), and 'min_samples_split' (The minimum number of samples required to split an internal node).
 </span></p>
 
 <p class="c0"><span></span></p><p class="c0"><span></span></p><ol class="c3 lst-kix_otxxp6dydhwn-0" start="5"><li class="c1 c4"><span>What is validation, and what’s a classic mistake you can make if you do it wrong? How did you validate your analysis? &nbsp;[relevant rubric item: “validation strategy”]</span></li></ol><p class="c0"><span></span></p><p class="c1"><span>In validation you try to evaluate the predictive power of your classifier. For this, it is necessary to split your dataset into two subsets, a train set, and a test set. Usually you want your train set to be large enough so that the training can be almost as effective as if you were training with the whole dataset, then you ask your classifier to classify the data points of your test set and since you already know the correct labeling, you can assess, among other things, the accuracy of your classifier. One classic mistake in validating your model could be to overfit your classifier with the available dataset, so that accuracy is really high, but classification of new entries is poor. 
