@@ -6,3 +6,5 @@ Udacity Data Analyst Nanodegree - Intro to Machine Learning
 Python
 
 scikit-learn
+
+Main code file is poi_id.py
